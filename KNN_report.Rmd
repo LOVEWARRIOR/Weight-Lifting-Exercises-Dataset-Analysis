@@ -1,0 +1,107 @@
+---
+title: "report"
+author: "LOVEWARRIOR"
+date: "Tuesday, January 13, 2015"
+output: html_document
+---
+##Synopsis:
+
+*I finished this project with several models. Here I would like to show random forest mentioned in class and KNN. I will manually do the cross validation in KNN but not in random forest since in train function, package caret does it for me.*
+
+First I defined a functions to eliminate NAs. 
+
+```{r}
+clean_NAs2<-function(data){
+  loss = c();
+  for (i in names(data)){
+    if(sum(complete.cases(data[i]))<nrow(data)){
+      loss<-c(loss,i)
+    }
+  }
+  #print("these columns need eliminated: ");
+  #print(loss);
+  cleaned_data <- data;
+  for(i in loss){
+    cleaned_data <- cleaned_data[names(cleaned_data)!=i];
+  }
+}
+```
+
+load data, eliminate NAs and remove first 7 variables because according to the documentation of this experiment, they are trivial variables.
+
+```{r, echo=FALSE}
+library(caret)
+original_data<-read.csv("pml-training.csv")
+cleaned_data<-clean_NAs(original_data)
+cleaned_data2<-cleaned_data[names(cleaned_data)[7:length(names(cleaned_data))]]
+
+```
+Separate the data into training and testing
+```{r,echo = FALSE}
+inTrain<-createDataPartition(cleaned_data2$classe, p = 0.8 , list = F)
+training<-cleaned_data2[inTrain,]
+testing<-cleaned_data2[-inTrain,]
+```
+
+##KNN algorithm
+Because the knn cannot endure any NA in the final test, I extract the variables without NAs from the final test file.
+```{r}
+actual_test<-loadActualTest()
+actual_test<-actual_test[names(actual_test)!="problem_id"]
+variables<-names(actual_test)
+variables<-variables[7:length(variables)]
+all_training2<-training[variables]
+all_training2<-cbind(all_training2,training$classe)
+names(all_training2)[length(names(all_training2))]<-"classe"
+inTrain2<-createDataPartition(all_training2$classe,p = 0.8 , list = F)
+training2<-all_training2[inTrain2,]
+testing2<-all_training2[-inTrain2,]
+# knnmdl2<-knn3(classe~. , data = training2 , k=3)
+# Testing_results<-predict(knnmdl2,testing2)
+# Testing_results<-convert2factors(Testing_results)
+# results<-convert2factors(predict(knnmdl2,actual_test))
+# confusionMatrix(testing2$classe,Testing_results)
+#select the best k
+for (i in 3:6){
+  knnmdl2<-knn3(classe~. , data = training2 , k=i)
+  Testing_results<-predict(knnmdl2,testing2)
+  Testing_results<-convert2factors(Testing_results)
+  #results<-predict(knnmdl2,actual_test)
+  print(paste("value of k:",i))
+  print(confusionMatrix(testing2$classe,Testing_results)$overall["Accuracy"])
+}
+```
+
+As the result of increasing the value of neighbors, the accurancy declines, so I chose the number 3.
+
+
+*Cross Validation manually*
+
+```{r}
+library(caret)
+myFolds<-createFolds(training2$classe, k = 4 , list = T)
+compute_all_folds<-function(folds){
+  number<-length(folds)
+  for (i in 1:number){
+    crossValidationDataSet<-training2[folds[[i]],]
+    current_training<-training2[-folds[[i]],]
+    knnmdl<- knn3(classe~. , data = current_training , k=3)
+    crossValidation_results<-convert2factors(predict(knnmdl,crossValidationDataSet))
+    true_validation_results<-training2[folds[[i]],]$classe
+    print(paste("fold No.",i))
+    print(confusionMatrix(true_validation_results,crossValidation_results)$overall[1])
+  }
+}
+
+compute_all_folds(myFolds);
+```
+
+You can see the results.
+
+##Summary
+*KNN is a superfast algorithm in training phase but not in test phase.
+Nonetheless, it's fast enough compared to random forest.
+Its deficiency is its relatively low accurancy, though above 90%.
+But luckily, it passes all test cases provided by the instructors. :-)*
+
+
