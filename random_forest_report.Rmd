@@ -1,0 +1,59 @@
+---
+title: "random_forest_report"
+author: "LOVEWARRIOR"
+date: "Wednesday, January 14, 2015"
+output: html_document
+---
+##This time I use the random forest.
+###load the data and training...
+```{r , cache=TRUE}
+clean_NAs2<-function(data){
+  loss = c();
+  for (i in names(data)){
+    if(sum(complete.cases(data[,i]))<nrow(data)){
+      loss<-c(loss,i)
+    }
+  }
+  print("these columns need eliminated: ");
+  print(loss);
+  cleaned_data <- data;
+  for(i in loss){
+    cleaned_data <- cleaned_data[names(cleaned_data)!=i];
+  }
+  cleaned_data
+}
+
+library(caret)
+original_data<-read.csv("pml-training.csv",na.strings = c("NA",""))
+cleaned_data<-clean_NAs2(original_data)
+inTrain<-createDataPartition(cleaned_data$classe, p = 0.8 , list = F)
+training<-cleaned_data[inTrain,]
+testing<-cleaned_data[-inTrain,]
+#######################random forest model################################
+myControl<-trainControl(method = "cv" , number = 2)
+random_forest_model<-train(classe~. , data = training , method = "rf" , trControl = myControl)
+```
+###**Cross Validation done by train function automatically**
+**For convenience, I just used 2 folds.**
+```{r}
+random_forest_model$resample
+```
+
+**It seems its accuracy is fairly nice.**
+
+###*performance on the testing sample*
+
+```{r, cache=TRUE}
+confusionMatrix(testing$classe,predict(random_forest_model,testing))
+```
+
+**It also gives a relatively good performance on the testing data. Also, the time needed for prediction is much less than that of KNN. **
+
+
+##**Summary**:
+*Random forest is an extremely accurate method.*
+
+
+
+
+

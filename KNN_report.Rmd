@@ -1,16 +1,16 @@
 ---
-title: "report"
+title: "KNN_report"
 author: "LOVEWARRIOR"
 date: "Tuesday, January 13, 2015"
 output: html_document
 ---
 ##Synopsis:
 
-*I finished this project with several models. Here I would like to show random forest mentioned in class and KNN. I will manually do the cross validation in KNN but not in random forest since in train function, package caret does it for me.*
+**I finished this project with several models. Here I would like to show random forest mentioned in class and KNN. I will manually do the cross validation in KNN but not in random forest since in train function, package caret does it for me.**
 
 First I defined a functions to eliminate NAs. 
 
-```{r}
+```{r,cache=TRUE}
 clean_NAs2<-function(data){
   loss = c();
   for (i in names(data)){
@@ -29,7 +29,7 @@ clean_NAs2<-function(data){
 
 load data, eliminate NAs and remove first 7 variables because according to the documentation of this experiment, they are trivial variables.
 
-```{r, echo=FALSE}
+```{r, cache=TRUE}
 library(caret)
 original_data<-read.csv("pml-training.csv")
 cleaned_data<-clean_NAs(original_data)
@@ -37,7 +37,7 @@ cleaned_data2<-cleaned_data[names(cleaned_data)[7:length(names(cleaned_data))]]
 
 ```
 Separate the data into training and testing
-```{r,echo = FALSE}
+```{r,cache=TRUE}
 inTrain<-createDataPartition(cleaned_data2$classe, p = 0.8 , list = F)
 training<-cleaned_data2[inTrain,]
 testing<-cleaned_data2[-inTrain,]
@@ -45,7 +45,7 @@ testing<-cleaned_data2[-inTrain,]
 
 ##KNN algorithm
 Because the knn cannot endure any NA in the final test, I extract the variables without NAs from the final test file.
-```{r}
+```{r, cache=TRUE}
 actual_test<-loadActualTest()
 actual_test<-actual_test[names(actual_test)!="problem_id"]
 variables<-names(actual_test)
@@ -75,9 +75,9 @@ for (i in 3:6){
 As the result of increasing the value of neighbors, the accurancy declines, so I chose the number 3.
 
 
-*Cross Validation manually*
+**Cross Validation manually**
 
-```{r}
+```{r,cache=TRUE}
 library(caret)
 myFolds<-createFolds(training2$classe, k = 4 , list = T)
 compute_all_folds<-function(folds){
