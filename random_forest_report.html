@@ -87,10 +87,8 @@ img {
   cleaned_data
 }
 
-library(caret)</code></pre>
-<pre><code>## Loading required package: lattice
-## Loading required package: ggplot2</code></pre>
-<pre class="r"><code>original_data&lt;-read.csv(&quot;pml-training.csv&quot;,na.strings = c(&quot;NA&quot;,&quot;&quot;))
+library(caret)
+original_data&lt;-read.csv(&quot;pml-training.csv&quot;,na.strings = c(&quot;NA&quot;,&quot;&quot;))
 cleaned_data&lt;-clean_NAs2(original_data)</code></pre>
 <pre><code>## [1] &quot;these columns need eliminated: &quot;
 ##   [1] &quot;kurtosis_roll_belt&quot;       &quot;kurtosis_picth_belt&quot;     
@@ -143,27 +141,25 @@ cleaned_data&lt;-clean_NAs2(original_data)</code></pre>
 ##  [95] &quot;avg_pitch_forearm&quot;        &quot;stddev_pitch_forearm&quot;    
 ##  [97] &quot;var_pitch_forearm&quot;        &quot;avg_yaw_forearm&quot;         
 ##  [99] &quot;stddev_yaw_forearm&quot;       &quot;var_yaw_forearm&quot;</code></pre>
-<pre class="r"><code>inTrain&lt;-createDataPartition(cleaned_data$classe, p = 0.8 , list = F)
+<pre class="r"><code>cleaned_data&lt;-cleaned_data[names(cleaned_data)[7:length(names(cleaned_data))]]
+inTrain&lt;-createDataPartition(cleaned_data$classe, p = 0.8 , list = F)
 training&lt;-cleaned_data[inTrain,]
 testing&lt;-cleaned_data[-inTrain,]
 #######################random forest model################################
 myControl&lt;-trainControl(method = &quot;cv&quot; , number = 2)
 random_forest_model&lt;-train(classe~. , data = training , method = &quot;rf&quot; , trControl = myControl)</code></pre>
-<pre><code>## Loading required package: randomForest
-## randomForest 4.6-10
-## Type rfNews() to see new features/changes/bug fixes.</code></pre>
 </div>
 <div id="cross-validation-done-by-train-function-automatically" class="section level3">
 <h3><strong>Cross Validation done by train function automatically</strong></h3>
 <p><strong>For convenience, I just used 2 folds.</strong></p>
 <pre class="r"><code>random_forest_model$resample</code></pre>
 <pre><code>##    Accuracy     Kappa Resample
-## 1 0.9994904 0.9993555    Fold1
-## 2 0.9994904 0.9993554    Fold2</code></pre>
+## 1 0.9956688 0.9945211    Fold1
+## 2 0.9912091 0.9888798    Fold2</code></pre>
 <p><strong>It seems its accuracy is fairly nice.</strong></p>
 </div>
-<div id="performance-on-the-testing-sample" class="section level3">
-<h3><em>performance on the testing sample</em></h3>
+<div id="performance-on-the-testing-data" class="section level3">
+<h3><em>performance on the testing data</em></h3>
 <pre class="r"><code>confusionMatrix(testing$classe,predict(random_forest_model,testing))</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
@@ -196,7 +192,90 @@ random_forest_model&lt;-train(classe~. , data = training , method = &quot;rf&quo
 ## Detection Rate         0.2845   0.1935   0.1744   0.1639   0.1838
 ## Detection Prevalence   0.2845   0.1935   0.1744   0.1639   0.1838
 ## Balanced Accuracy      1.0000   1.0000   1.0000   1.0000   1.0000</code></pre>
-<p><strong>It also gives a relatively good performance on the testing data. Also, the time needed for prediction is much less than that of KNN. </strong></p>
+<p><strong>It also gives a relatively good performance on the testing data. Also, the time needed for prediction is much less than that of KNN. </strong> <strong>Tests provided by instructors from Hopkins:</strong></p>
+<pre class="r"><code>actual_test&lt;-read.csv(&quot;pml-testing.csv&quot;)
+actual_test&lt;-clean_NAs(actual_test)</code></pre>
+<pre><code>## [1] &quot;these columns need eliminated: &quot;
+##   [1] &quot;kurtosis_roll_belt&quot;       &quot;kurtosis_picth_belt&quot;     
+##   [3] &quot;kurtosis_yaw_belt&quot;        &quot;skewness_roll_belt&quot;      
+##   [5] &quot;skewness_roll_belt.1&quot;     &quot;skewness_yaw_belt&quot;       
+##   [7] &quot;max_roll_belt&quot;            &quot;max_picth_belt&quot;          
+##   [9] &quot;max_yaw_belt&quot;             &quot;min_roll_belt&quot;           
+##  [11] &quot;min_pitch_belt&quot;           &quot;min_yaw_belt&quot;            
+##  [13] &quot;amplitude_roll_belt&quot;      &quot;amplitude_pitch_belt&quot;    
+##  [15] &quot;amplitude_yaw_belt&quot;       &quot;var_total_accel_belt&quot;    
+##  [17] &quot;avg_roll_belt&quot;            &quot;stddev_roll_belt&quot;        
+##  [19] &quot;var_roll_belt&quot;            &quot;avg_pitch_belt&quot;          
+##  [21] &quot;stddev_pitch_belt&quot;        &quot;var_pitch_belt&quot;          
+##  [23] &quot;avg_yaw_belt&quot;             &quot;stddev_yaw_belt&quot;         
+##  [25] &quot;var_yaw_belt&quot;             &quot;var_accel_arm&quot;           
+##  [27] &quot;avg_roll_arm&quot;             &quot;stddev_roll_arm&quot;         
+##  [29] &quot;var_roll_arm&quot;             &quot;avg_pitch_arm&quot;           
+##  [31] &quot;stddev_pitch_arm&quot;         &quot;var_pitch_arm&quot;           
+##  [33] &quot;avg_yaw_arm&quot;              &quot;stddev_yaw_arm&quot;          
+##  [35] &quot;var_yaw_arm&quot;              &quot;kurtosis_roll_arm&quot;       
+##  [37] &quot;kurtosis_picth_arm&quot;       &quot;kurtosis_yaw_arm&quot;        
+##  [39] &quot;skewness_roll_arm&quot;        &quot;skewness_pitch_arm&quot;      
+##  [41] &quot;skewness_yaw_arm&quot;         &quot;max_roll_arm&quot;            
+##  [43] &quot;max_picth_arm&quot;            &quot;max_yaw_arm&quot;             
+##  [45] &quot;min_roll_arm&quot;             &quot;min_pitch_arm&quot;           
+##  [47] &quot;min_yaw_arm&quot;              &quot;amplitude_roll_arm&quot;      
+##  [49] &quot;amplitude_pitch_arm&quot;      &quot;amplitude_yaw_arm&quot;       
+##  [51] &quot;kurtosis_roll_dumbbell&quot;   &quot;kurtosis_picth_dumbbell&quot; 
+##  [53] &quot;kurtosis_yaw_dumbbell&quot;    &quot;skewness_roll_dumbbell&quot;  
+##  [55] &quot;skewness_pitch_dumbbell&quot;  &quot;skewness_yaw_dumbbell&quot;   
+##  [57] &quot;max_roll_dumbbell&quot;        &quot;max_picth_dumbbell&quot;      
+##  [59] &quot;max_yaw_dumbbell&quot;         &quot;min_roll_dumbbell&quot;       
+##  [61] &quot;min_pitch_dumbbell&quot;       &quot;min_yaw_dumbbell&quot;        
+##  [63] &quot;amplitude_roll_dumbbell&quot;  &quot;amplitude_pitch_dumbbell&quot;
+##  [65] &quot;amplitude_yaw_dumbbell&quot;   &quot;var_accel_dumbbell&quot;      
+##  [67] &quot;avg_roll_dumbbell&quot;        &quot;stddev_roll_dumbbell&quot;    
+##  [69] &quot;var_roll_dumbbell&quot;        &quot;avg_pitch_dumbbell&quot;      
+##  [71] &quot;stddev_pitch_dumbbell&quot;    &quot;var_pitch_dumbbell&quot;      
+##  [73] &quot;avg_yaw_dumbbell&quot;         &quot;stddev_yaw_dumbbell&quot;     
+##  [75] &quot;var_yaw_dumbbell&quot;         &quot;kurtosis_roll_forearm&quot;   
+##  [77] &quot;kurtosis_picth_forearm&quot;   &quot;kurtosis_yaw_forearm&quot;    
+##  [79] &quot;skewness_roll_forearm&quot;    &quot;skewness_pitch_forearm&quot;  
+##  [81] &quot;skewness_yaw_forearm&quot;     &quot;max_roll_forearm&quot;        
+##  [83] &quot;max_picth_forearm&quot;        &quot;max_yaw_forearm&quot;         
+##  [85] &quot;min_roll_forearm&quot;         &quot;min_pitch_forearm&quot;       
+##  [87] &quot;min_yaw_forearm&quot;          &quot;amplitude_roll_forearm&quot;  
+##  [89] &quot;amplitude_pitch_forearm&quot;  &quot;amplitude_yaw_forearm&quot;   
+##  [91] &quot;var_accel_forearm&quot;        &quot;avg_roll_forearm&quot;        
+##  [93] &quot;stddev_roll_forearm&quot;      &quot;var_roll_forearm&quot;        
+##  [95] &quot;avg_pitch_forearm&quot;        &quot;stddev_pitch_forearm&quot;    
+##  [97] &quot;var_pitch_forearm&quot;        &quot;avg_yaw_forearm&quot;         
+##  [99] &quot;stddev_yaw_forearm&quot;       &quot;var_yaw_forearm&quot;</code></pre>
+<pre class="r"><code>predict(random_forest_model,actual_test)</code></pre>
+<pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E</code></pre>
+<p><strong>Just for inference , check the importance of each variable</strong></p>
+<pre class="r"><code>varImp(random_forest_model)</code></pre>
+<pre><code>## rf variable importance
+## 
+##   only 20 most important variables shown (out of 53)
+## 
+##                      Overall
+## num_window           100.000
+## roll_belt             62.911
+## pitch_forearm         37.644
+## yaw_belt              30.004
+## magnet_dumbbell_z     28.673
+## magnet_dumbbell_y     27.765
+## pitch_belt            27.621
+## roll_forearm          22.598
+## accel_dumbbell_y      12.108
+## magnet_dumbbell_x     11.118
+## roll_dumbbell         10.188
+## accel_forearm_x        9.755
+## accel_belt_z           8.260
+## total_accel_dumbbell   8.189
+## accel_dumbbell_z       7.524
+## magnet_belt_y          7.517
+## magnet_belt_z          7.319
+## magnet_forearm_z       6.715
+## magnet_belt_x          5.454
+## gyros_belt_z           4.617</code></pre>
 </div>
 </div>
 <div id="summary" class="section level2">
